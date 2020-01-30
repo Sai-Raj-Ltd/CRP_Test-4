@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record forcecreate="True" id="warranty_expires_scheduler" model="ir.cron">
+            <field name="name">Warranty Expiry</field>
+            <field name="model_id" ref="model_warranty_details"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_warranty_expire()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">1</field>
+        </record>
+        
+        <record forcecreate="True" id="warranty_expired_scheduler" model="ir.cron">
+            <field name="name">Warranty Expired</field>
+            <field name="model_id" ref="model_warranty_details"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_warranty_expired()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">1</field>
+        </record>
+</odoo>

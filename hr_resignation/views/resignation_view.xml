@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="employee_resignation_tree" model="ir.ui.view">
+            <field name="name">hr.resignation.tree</field>
+            <field name="model">hr.resignation</field>
+            <field name="priority" eval="8" />
+            <field name="arch" type="xml">
+                <tree string="Employee Resignation">
+                    <field name="employee_id"/>
+                    <field name="department_id"/>
+                    <field name="joined_date"/>
+                    <field name="expected_revealing_date"/>
+                    <field name="approved_revealing_date"/>
+                    <field name="notice_period"/>
+                </tree>
+            </field>
+        </record>
+        <record id="employee_resignation_form" model="ir.ui.view">
+            <field name="name">hr.resignation.form</field>
+            <field name="model">hr.resignation</field>
+            <field name="priority" eval="8" />
+            <field name="arch" type="xml">
+                <form string="Employee Resignation">
+                    <header>
+                        <button string="Confirm" type="object" name="confirm_resignation" states='draft' class="oe_highlight"/>
+                        <button string="Approve" type="object" name="linemanager_approve" states='linemanager' class="oe_highlight"/>
+                        <button string="Approve" type="object" name="storesclearance_approve" states='storesclearance' class="oe_highlight"/>
+                        <button string="Approve" type="object" name="hrapproval" states='hrapproval' class="oe_highlight"/>
+                        <button string="Approve" type="object" name="directorapproval" states='directorapproval' class="oe_highlight"/>
+                        <button string="Reject" type="object" name="reject_resignation"
+                                states='linemanager,storesclearance,hrapproval,directorapproval'/>
+                        <button string="Cancel" type="object" name="cancel_resignation" states='draft'/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,hrapproval,directorapproval"/>
+
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="department_id"/>
+                                <field name="joined_date"/>
+                                <field name="resign_confirm_date" class="oe_read_only" attrs="{'invisible':[('resign_confirm_date','=','')]}"/>
+                            </group>
+                            <group>
+                                <field name="expected_revealing_date"/>
+                                <field name="approved_revealing_date" states="directorapproval,approved"/>
+                                <field name="notice_period" states="confirm,approved"/>
+                                <field name="stores_clearance_notes" attrs="{'invisible':[('state','not in',['storesclearance','hrapproval','directorapproval','rejected','approved'])], 'readonly':[('state','!=','storesclearance')]}"/>
+                            </group>
+                        </group>
+                        <field name="reason"/>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        <record model="ir.actions.act_window" id="view_employee_resignation">
+            <field name="name">Employee Resignation</field>
+            <field name="res_model">hr.resignation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Employee Resignation Form
+                </p>
+            </field>
+        </record>
+        <menuitem id="employee_resignation" parent="hr.menu_hr_root" name="Resignation" sequence="41"/>
+        <menuitem id="employee_resignation_request" parent="hr_resignation.employee_resignation" name="Resignation Request"
+                  action="view_employee_resignation"/>
+
+    </data>
+</odoo>
+
+

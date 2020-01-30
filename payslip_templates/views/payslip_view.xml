@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+
+    <data>
+        <record id="view_payslip_templates" model="ir.ui.view">
+            <field name="name">Payslip template</field>
+            <field name="model">hr.payslip</field>
+            <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='contract_id']" position="after">
+                        <field name="template_id"/>
+                        <field name="detailed_template_id"/>
+                </xpath>
+                <xpath expr="//notebook" position="inside">
+                  <page string="Payslip Report Settings">
+                    <group colspan="6" col="6" name="payslip_settings">
+                      <separator colspan="6" string="Payslip Report Settings"/>
+                      <field name="payslip_logo" widget="image" class="oe_avatar"/>
+                      <field name="odd"/>
+                      <field name="even"/>
+                      <field name="text_color"/>
+                      <field name="theme_color"/>
+                      <field name="theme_txt_color"/>
+                      <field name="name_color"/>
+                      <field name="cust_color"/>
+                      <field name="header_font"/>
+                      <field name="body_font"/>
+                      <field name="footer_font"/>
+                      <field name="font_family">
+                        <div>
+                          <i class="fa fa-info-circle" aria-hidden="true">
+                            <strong> NOTE:</strong>
+                          </i>
+                          <p style="margin-top:0px;">Please make sure the font family you are specifying is already installed in your Odoo Server.</p>
+                        </div>
+                      </field>
+                    </group>
+                  </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

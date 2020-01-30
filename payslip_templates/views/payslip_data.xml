@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+  <template id="payslip_data">
+    <table class="table table-condensed" t-attf-style="color:{{o.text_color}};">
+      <thead t-attf-style="color:{{o.theme_txt_color}};">
+        <t t-set="th_style" t-value="'border-bottom: 1px solid #ddd !important;white-space:nowrap;'"/>
+      <tr t-attf-style="page-break-inside:avoid;background-color:{{o.theme_color}};font-size:{{o.body_font+2}}px;">
+          <th t-attf-style="{{th_style}}"><i class="fa fa-list-ol"/> Item</th>
+          <th t-attf-style="{{th_style}}"><i class="fa fa-cog"/> Code</th>
+          <th t-attf-style="{{th_style}}"><i class="fa fa-th-large"/> Name</th>
+          <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-sort-amount-asc"/> Quantity/rate</th>
+          <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-tags"/> Amount</th>
+          <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-money"/> Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!--<tr t-foreach="get_payslip_lines(o.line_ids)" t-as="p">-->
+        <t t-foreach="o.line_ids" t-as="p">
+          <tr t-if="p.appears_on_payslip" t-attf-style="background-color:{{o.odd if p_parity in 'odd' else o.even}};page-break-inside:avoid;">
+            <td><span t-esc="p_index+1"/></td>
+            <td><span t-field="p.code"/></td>
+            <td><span t-field="p.name"/></td>
+            <td class="text-right"><span t-field="p.quantity"/></td>
+            <td class="text-right"><span t-field="p.amount" t-field-options='{"widget": "monetary", "display_currency": "o.company_id.currency_id"}'/></td>
+            <td class="text-right"><span t-field="p.total" t-field-options='{"widget": "monetary", "display_currency": "o.company_id.currency_id"}'/></td>
+          </tr>
+        </t>
+      </tbody>
+    </table>
+    <div class="col-xs-6 pull-left mt16" style="padding-left:0px;"><strong>Prepared By:</strong> <span t-field="o.write_uid"/></div>
+    <div class="col-xs-6 pull-right text-right mt16" style="padding-right:0px;"><strong>Authorized Signature:</strong> <span><t t-esc="'.'*25"/></span></div>
+  </template>
+  </data>
+</openerp>

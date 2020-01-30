@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            id="report_warranty"
+            string="Warranty Report"
+            model="warranty.details"
+            report_type="qweb-pdf"
+            name="bt_sales_warranty.report_warranty_detail"
+            file="bt_sales_warranty.report_warranty_detail"/>
+    </data>
+</odoo>

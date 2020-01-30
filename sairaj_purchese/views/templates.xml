@@ -1,0 +1,89 @@
+<odoo>
+    <data>
+        <record id="email_template_edi_purchase_extended" model="mail.template">
+            <field name="name">Purchase Order: Send RFQ</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="subject">${object.company_id.name} Order (Ref ${object.name or 'n/a' })</field>
+            <field name="email_from">${object.sudo().create_uid.email_formatted | safe}</field>
+            <field name="email_to">${object.get_emails_list()}</field>
+            <!--<field name="partner_to">${for emails in object.get_emails_list()}</field>-->
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        Dear Vendor
+        % if object.partner_id.parent_id:
+            (${object.partner_id.parent_id.name})
+        % endif
+        <br/><br/>
+        Here is in attachment a request for quotation <strong>${object.name}</strong>
+        % if object.partner_ref:
+            with reference: ${object.partner_ref}
+        % endif
+        from ${object.company_id.name}.
+        <br/><br/>
+        If you have any questions, please do not hesitate to contact us.
+        <br/><br/>
+        Best regards,
+    </p>
+</div></field>
+            <field name="report_template" ref="purchase.report_purchase_quotation"/>
+            <field name="report_name">RFQ_${(object.name or '').replace('/','_')}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="user_signature" eval="False"/>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+
+<template id="purchase.report_purchasequotation_document">
+    <t t-call="web.external_layout">
+        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+
+        <t t-if="o.dest_address_id">
+            <t t-set="information_block">
+                <strong>Shipping address:</strong>
+                <div t-field="o.dest_address_id"
+                    t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' name="purchase_shipping_address"/>
+            </t>
+        </t>
+        <div class="page">
+            <div class="oe_structure"/>
+
+            <h2>Request for Quotation <span t-field="o.name"/></h2>
+
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th><strong>Description</strong></th>
+                        <th class="text-center"><strong>Expected Date</strong></th>
+                        <th class="text-right"><strong>Qty</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="o.order_line" t-as="order_line">
+                        <td>
+                            <span t-field="order_line.name"/>
+                        </td>
+                        <td class="text-center">
+                            <span t-field="order_line.date_planned"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="order_line.product_qty"/>
+                            <span t-field="order_line.product_uom" groups="uom.group_uom"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p t-field="o.notes"/>
+
+            <div class="oe_structure"/>
+        </div>
+    </t>
+</template>
+
+
+
+
+
+    </data>
+</odoo>

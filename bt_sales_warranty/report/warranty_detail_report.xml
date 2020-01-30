@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+<template id="report_warranty_detail_template">
+<t t-call="web.external_layout">
+	<div class="page">
+		<div class="col-xs-12">
+			<div style="font-size:10px">
+		    	<h1><t t-esc="doc.name"/></h1>
+		    <strong>#</strong>
+		    	<t t-esc="doc.sale_id.name"/> &amp;nbsp; &amp;nbsp; &amp;nbsp;
+		    <strong>#</strong>
+		    	<t t-esc="doc.invoice_id.number"/>
+		    </div><br/><br/>
+		    <div>
+			        <strong>Customer</strong>:<br/>
+			             <t t-esc="doc.customer_id.name"/><br/>
+			             <t t-esc="doc.customer_id.street"/><br/>
+			             <t t-esc="doc.customer_id.city"/>
+			             <t t-esc="doc.customer_id.zip"/><br/>    
+			             <t t-esc="doc.customer_id.country_id.display_name"/><br/>  
+		     </div><br/><br/>
+	    </div>
+	   	<div  class="row">
+	        <div class="col-xs-12">
+		        <div class="col-xs-3">
+		        	<strong>Product</strong>:<br/>
+		            <t t-esc="doc.product_id.name"/><br/>
+		        </div> 
+		        <div class="col-xs-3">    
+		        	<strong>Serial Number</strong>:<br/>
+		            <t t-esc="doc.sno"/><br/>  
+		        </div>      
+		        <div class="col-xs-3">   
+		        	<strong>Purchase Date</strong>:<br/>
+		            <t t-esc="doc.purchase_date"/><br/>
+		        </div> 
+		        <div class="col-xs-3">    
+		        	<strong>Warranty Expiry Date</strong>:<br/>
+		            <t t-esc="doc.warranty_end_date"/><br/>
+		        </div>  
+		    </div>
+	    </div>
+	    <div class="row" style="padding-top:20px">
+	    	<div class="col-xs-12">
+	    		<div class="col-xs-3">    
+	        		<strong>Is Not Interested</strong>:<br/>
+	            	<t t-esc="doc.not_interested"/><br/>
+	            </div>	
+	        </div>
+		</div>  
+    </div>
+    </t>
+</template>
+
+<template id="report_warranty_detail">
+    <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="bt_sales_warranty.report_warranty_detail_template">
+                </t>
+            </t>
+    </t>
+</template>
+</data>
+</odoo>
