@@ -36,6 +36,7 @@
         'views/contract_view.xml',
         'views/hr_view.xml',
         'views/res_config_view.xml',
+        'views/res_company.xml',
         'data/overtime_data.xml',
         'data/salary_advance_data.xml',
         'data/categories_data.xml',
