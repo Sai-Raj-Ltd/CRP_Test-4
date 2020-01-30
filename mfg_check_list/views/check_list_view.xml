@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <record id="mrp_checklist_form_view" model="ir.ui.view">
+            <field name="name">mrp.checklist.form</field>
+            <field name="model">mrp.checklist</field>
+            <field name="arch" type="xml">
+                <form string="Routing Work Centers">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="mrp_remarks_form_view" model="ir.ui.view">
+            <field name="name">mrp.remarks.form</field>
+            <field name="model">mrp.remarks</field>
+            <field name="arch" type="xml">
+                <form string="Routing Work Centers">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        
+</odoo> 

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+  <template id="PAYSLIP_1_document" name="Modern Payslip Template">
+    <!-- Multicompany -->
+    <t t-if="o and 'company_id' in o">
+      <t t-set="company" t-value="o.company_id"></t>
+    </t>
+    <t t-if="not o or not 'company_id' in o">
+     <t t-set="company" t-value="res_company"></t>
+    </t>
+    <div t-attf-style="color:{{o.text_color}} !important;font-size:{{o.header_font}}px !important;font-family:{{o.font_family}} !important;" class="header">
+      <div class="row col-xs-5 mb8 pull-left" style="padding-bottom:2px;">
+        <div class="pull-left" style="width:auto;padding-right:15px;">
+          <t t-call="payslip_templates.company_address"/>
+        </div>
+      </div>
+      <div class="row col-xs-7 pull-right">
+        <div t-if="o.payslip_logo" style="padding-bottom:8px;" class="pull-right">
+          <span itemprop="image" t-field="o.payslip_logo" t-field-options='{"widget": "image"}'/>
+        </div>
+        <div t-if="not o.payslip_logo and company.logo" style="padding-bottom:8px;" class="pull-right">
+          <span itemprop="image" t-field="company.logo" t-field-options='{"widget": "image"}'/>
+        </div>
+        <div t-if="not o.payslip_logo and not company.logo" style="padding-bottom:8px;" class="pull-right">
+          <span itemprop="image" t-field="company.logo" t-field-options='{"widget": "image"}'/>
+        </div>
+      </div>
+    </div>
+
+    <div t-attf-style="color:{{o.text_color}} !important;font-size:{{o.body_font}}px !important;font-family:{{o.font_family}} !important;" class="article page">
+      <div class="row col-xs-12 text-center" t-attf-style="font-size:{{o.body_font+2}}px;font-weight:bold;color:{{o.cust_color}};">Payslip</div>
+      <div class="row col-xs-12 text-center" t-attf-style="font-size:{{o.body_font+2}}px;color:{{o.cust_color}};"><p t-field="o.name"/></div>
+
+      <table class="table table-condensed" t-attf-style="color:{{o.theme_txt_color}};background-color:{{o.theme_color}};font-size:{{o.body_font+2}}px;">
+        <tr>
+          <td><strong>EMP NAME:</strong> <span t-field="o.employee_id"/></td>
+          <td><strong>DEPT:</strong> <span t-field="o.employee_id.department_id"/></td>
+          <td><strong>REF:</strong> <span t-field="o.number"/></td>
+        </tr>
+        <tr>
+          <td rowspan="5"><strong>ADDRESS:</strong> <div t-field="o.employee_id.address_home_id" t-field-options='{"widget": "contact", "fields": ["address", "phone", "email"], "no_marker": false}'/></td>
+          <td><strong>DESIGNATION:</strong> <span t-field="o.employee_id.job_id"/></td>
+          <td><strong>PERIOD START:</strong> <span t-field="o.date_from"/></td>
+        </tr>
+        <tr>
+          <td><strong>ID NO.:</strong> <span t-field="o.employee_id.identification_id"/></td>
+          <td><strong>PERIOD END:</strong> <span t-field="o.date_to"/></td>
+        </tr>
+        <tr>
+          <td><strong>EMAIL:</strong> <span t-field="o.employee_id.work_email"/></td>
+          <td><strong>BANK ACCOUNT:</strong> <span t-field="o.employee_id.bank_account_id.acc_number"/></td>
+        </tr>
+        <tr>
+          <td><strong>DATE EMPLOYED:</strong> <span t-field="o.contract_id.date_start"/></td>
+          <td><strong>BANK NAME:</strong> <span t-field="o.employee_id.bank_account_id.bank_id.name"/></td>
+        </tr>
+        <tr>
+          <td><strong>MARITAL STATUS:</strong> <span t-field="o.employee_id.marital"/></td>
+          <td><strong>BANK CODE:</strong> <span t-field="o.employee_id.bank_account_id.bank_id.bic"/></td>
+        </tr>
+      </table>
+
+      <t t-call="payslip_templates.payslip_data"/>
+
+    </div>
+    <!--FOOTER -->
+    <div class="footer" t-attf-style="font-size:{{o.footer_font}}px !important;font-family:{{o.font_family}} !important;">
+      <t t-call="payslip_templates.company_footer"/>
+    </div>
+    <!--/FOOTER-->
+
+</template>
+</data>
+</openerp>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+    <template id="payslip_detailed_data">
+      <div t-attf-style="font-size:{{o.body_font+4}}px;">Details by Salary Rule Category</div>
+      <table class="table table-condensed mb32" t-attf-style="color:{{o.text_color}};">
+        <thead t-attf-style="color:{{o.theme_txt_color}};">
+          <t t-set="th_style" t-value="'border-bottom: 1px solid #ddd !important;white-space:nowrap;'"></t>
+          <tr t-attf-style="page-break-inside:avoid;background-color:{{o.theme_color}};font-size:{{o.body_font+2}}px;">
+            <th t-attf-style="{{th_style}}"><i class="fa fa-list-ol"/> Item</th>
+            <th t-attf-style="{{th_style}}"><i class="fa fa-cog"/> Code</th>
+            <th t-attf-style="{{th_style}}"><i class="fa fa-archive"/> Category</th>
+            <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-money"/> Total</th>
+          </tr>
+        </thead>
+        <tbody>
+            <!--<t t-foreach="get_details_by_rule_category(o.details_by_salary_rule_category)" t-as="h">-->
+          <t t-foreach="get_details_by_rule_category.get(o.id, [])" t-as="h">
+            <tr t-attf-style="background-color:{{o.odd if h_parity in 'odd' else o.even}};page-break-inside:avoid;"> 
+              <td>
+                <span t-esc="h_index+1"/>
+              </td>
+              <td>
+                <span t-esc="h['code']"/>
+              </td>
+              <td>
+                <span t-esc="'➛'*h['level']"/> <span t-esc="h['rule_category']"/>
+              </td>
+              <td class="text-right">
+                  <span t-esc="h['total']" t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+              </td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <div t-attf-style="font-size:{{o.body_font+4}}px;">Details by Contribution Register</div>
+      <table class="table table-condensed" t-attf-style="color:{{o.text_color}};">
+        <thead t-attf-style="color:{{o.theme_txt_color}};">
+          <tr t-attf-style="page-break-inside:avoid;background-color:{{o.theme_color}};font-size:{{o.body_font+2}}px;">
+            <th t-attf-style="{{th_style}}"><i class="fa fa-list-ol"/> Item</th>
+            <th t-attf-style="{{th_style}}"><i class="fa fa-cog"/> Code</th>
+            <th t-attf-style="{{th_style}}"><i class="fa fa-th-large"/> Name</th>
+            <th t-attf-style="{{th_style}}"><i class="fa fa-sort-amount-asc"/> Quantity/rate</th>
+            <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-tags"/> Amount</th>
+            <th t-attf-style="{{th_style}}" class="text-right"><i class="fa fa-money"/> Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="get_lines_by_contribution_register.get(o.id, [])" t-as="p">
+              <tr t-attf-style="background-color:{{o.odd if p_parity in 'odd' else o.even}};page-break-inside:avoid;">
+                <td><span t-esc="p_index+1"/></td>
+                <td><span t-esc="p.get('code', '')"/></td>
+                <td><span t-esc="p.get('name', '')"/></td>
+                <td><span t-esc="p.get('quantity', '')"/></td>
+                <td class="text-right"><span t-esc="p.get('amount', 0)"  t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                <td class="text-right"><span t-esc="p.get('total', 0)"  t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+      <div class="col-xs-6 pull-left mt16" style="padding-left:0px;"><strong>Prepared By:</strong> <span t-field="o.write_uid"/></div>
+      <div class="col-xs-6 pull-right text-right mt16" style="padding-right:0px;"><strong>Authorized Signature:</strong> <span><t t-esc="'.'*25"/></span></div>
+  </template>
+  </data>
+</openerp>

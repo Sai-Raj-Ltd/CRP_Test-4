@@ -1,0 +1,22 @@
+<odoo>
+  <data>
+        <record id="view_inventory_form_extended" model="ir.ui.view">
+        <field name="name">stock.inventory.form.extended</field>
+        <field name="model">stock.inventory</field>
+        <field eval="25" name="priority"/>
+        <field name="inherit_id" ref="stock.view_inventory_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header[1]" position='replace' >
+                <header>
+                    <button name="action_start" states="draft" string="Start Inventory" type="object" class="oe_highlight" groups="stock.group_stock_user"/>
+                    <button name="action_for_approval" states="confirm" string="Validate Inventory" type="object" class="oe_highlight" groups="stock.group_stock_manager"/>
+                    <button name="action_validate" states="approval" string="Approve" type="object" class="oe_highlight" groups="sairaj_inventory.group_stock_director"/>
+                    <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object"/>
+                    <button name="action_cancel_draft" states="confirm,approval" string="Cancel Inventory" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approval,done"/>
+                </header>
+            </xpath>
+        </field>
+        </record>
+  </data>
+</odoo>

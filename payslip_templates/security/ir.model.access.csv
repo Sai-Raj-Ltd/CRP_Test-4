@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_payslip_templates_payslip_templates,payslip_templates.payslip_templates,model_payslip_templates_payslip_templates,,1,0,0,0

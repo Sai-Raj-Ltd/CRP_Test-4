@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_warranty_record,warranty.details,model_warranty_details,,1,1,1,1
+access_service_record,service.details,model_service_details,,1,1,1,1
+access_campaign_record,campaign.details,model_campaign_details,,1,1,1,1
+access_warranty_extention,warranty.extention,model_warranty_extention,,1,1,1,1

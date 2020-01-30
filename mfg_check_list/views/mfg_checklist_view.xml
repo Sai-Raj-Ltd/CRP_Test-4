@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <record model="ir.ui.view" id="mfg_checklist_view">
+        <field name="name">mfg.checklist.tree.view</field>
+        <field name="model">mfg.checklist</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="name"/>
+               <!--  <field name="work_center"/> -->
+            </tree>
+        </field>
+    </record>
+
+
+    <record model="ir.ui.view" id="mrp_workorder_checklist_form_view">
+        <field name="name">mrp.workorder.checklist.form.view</field>
+        <field name="model">mrp.workorder.checklist</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <group>
+                    <group>
+                        <field name="checklist_ids"/>
+                        <field name="comments"/>
+                    </group>
+                    <group col="2">
+                        <field name="yes"/>
+                        <field name="no"/>
+                        <field name="na"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+
+
+    <record id="action_task_checklist" model="ir.actions.act_window">
+        <field name="name">Checklist</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mfg.checklist</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create New Checklist
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="task_check_list_menu" 
+            name="Checklist" 
+            parent="mrp.menu_mrp_bom" 
+            sequence="3"
+            action="action_task_checklist"/>
+
+
+<!--         <record id="mrp_routing_operations_action" model="ir.actions.act_window">
+            <field name="name">Work Center Operations</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.routing.workcenter</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <menuitem id="menu_mrp_opration_action"
+          action="mrp_routing_operations_action"
+          parent="mrp.menu_mrp_bom"
+          groups="mrp.group_mrp_routings"
+          sequence="50"/> -->
+
+</odoo>

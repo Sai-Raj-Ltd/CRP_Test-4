@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_payslip_templates_config_settings" model="ir.ui.view">
+            <field name="name">Payslip template settings</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="hr_payroll.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+              <xpath expr="//div[@data-key='hr_payroll']" position="inside">
+					  <h2>Default Payslip Report Settings</h2>
+                  <div class="row mt16 o_settings_container">
+						  <div class="col-md-6 col-xs-12 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <label string="Default Settings"/>
+                                <div class="text-muted">
+                                    Default payslip report settings
+                                </div>
+                                <div class="mt16" id="payslip_settings">
+									<div style="width:100%;display:inline-block;">
+										<label for="company_id" invisible="True"/>
+										<field name="company_id" class="oe_inline" invisible="True"/>
+									</div>
+									<div>
+										<label for="payslip_logo"/>
+										<field name="payslip_logo"/>
+									</div>
+									<div>
+										<label for="template_id"/>
+										<field name="template_id" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="detailed_template_id"/>
+										<field name="detailed_template_id" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="odd"/>
+										<field name="odd" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="even"/>
+										<field name="even" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="theme_color"/>
+										<field name="theme_color" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="theme_txt_color"/>
+										<field name="theme_txt_color" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="text_color"/>
+										<field name="text_color" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="name_color"/>
+										<field name="name_color" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="cust_color"/>
+										<field name="cust_color" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="header_font"/>
+										<field name="header_font" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="body_font"/>
+										<field name="body_font" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="footer_font"/>
+										<field name="footer_font" class="oe_inline"/>
+									</div>
+									<div>
+										<label for="font_family"/>
+										<field name="font_family" class="oe_inline"/>
+									</div>
+									<div>
+										<i class="fa fa-info-circle" aria-hidden="true"><strong> NOTE:</strong></i>
+										<p style="margin-top:0px;">Please make sure the font family you are specifying is already installed in your Odoo Server.</p>
+									</div>
+                                </div>
+                            </div>
+                        </div>
+                  </div>
+              </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

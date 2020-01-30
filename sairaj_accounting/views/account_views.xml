@@ -1,0 +1,47 @@
+<odoo>
+  <data>
+ <record id="invoice_form_id" model="ir.ui.view">
+            <field name="name">account.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="arch" type="xml">
+
+              <xpath expr="//button[@name='action_invoice_open']" position="attributes">
+
+                    <attribute name="groups">account.group_account_manager</attribute>
+
+              </xpath>
+
+        </field>
+
+</record>
+
+
+
+<record id="view_account_payment_invoice_form_id" model="ir.ui.view">
+            <field name="name">account.payment.invoice.form</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_invoice_form"/>
+            <field name="arch" type="xml">
+               <xpath expr="//field[@name='payment_method_id']" position="after">
+                    <!-- <field name="invoice_ref"/> -->
+                    <field name="online_payment_method" style="min-width: 20px;" options="{'horizontal': true}"  widget = "radio"/>
+                     <field name="payment_refernce"/>
+
+
+                    
+                   
+              </xpath>
+
+             </field>
+</record>
+
+
+
+
+
+
+
+
+  </data>
+</odoo>
