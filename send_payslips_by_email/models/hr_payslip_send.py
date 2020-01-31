@@ -38,6 +38,7 @@ class SendMultiPayslips(models.TransientModel):
     """ @Transient - New transient class for selecting payslips in a tree list
     and sending them by email."""
     _name = 'hr.payslip.send'
+    _description = "Send Multi-Payslips"
 
     @api.multi
     def multi_send_by_email(self):

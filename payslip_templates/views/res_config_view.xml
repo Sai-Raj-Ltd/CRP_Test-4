@@ -11,7 +11,7 @@
                   <div class="row mt16 o_settings_container">
 						  <div class="col-md-6 col-xs-12 o_setting_box">
                             <div class="o_setting_right_pane">
-                                <label string="Default Settings"/>
+                                <label string="Default Settings" for="id"/>
                                 <div class="text-muted">
                                     Default payslip report settings
                                 </div>
@@ -25,8 +25,8 @@
 										<field name="payslip_logo"/>
 									</div>
 									<div>
-										<label for="template_id"/>
-										<field name="template_id" class="oe_inline"/>
+										<label for="ptemplate_id"/>
+										<field name="ptemplate_id" class="oe_inline"/>
 									</div>
 									<div>
 										<label for="detailed_template_id"/>

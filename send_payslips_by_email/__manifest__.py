@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Send Payslips By Email",
+    'license': 'OPL-1',
     'support': 'support@optima.co.ke',
 
     'summary': """
@@ -16,7 +17,7 @@
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/master/openerp/addons/base/module/module_data.xml
     # for the full list
-    #'images': ['static/description/sendbyemail.png'],
+    # 'images': ['static/description/sendbyemail.png'],
     'category': 'Human Resources',
     'images': ['static/description/main.png'],
     'version': '0.1',

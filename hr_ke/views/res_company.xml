@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+		<data>
+				<record id="view_hr_ke_res_company_settings" model="ir.ui.view">
+						<field name="name">hr_ke Res Company Settings</field>
+						<field name="model">res.company</field>
+						<field name="inherit_id" ref="base.view_company_form"/>
+						<field name="arch" type="xml">
+								<xpath expr="//field[@name='partner_id']" position="before">
+        	 						<field name="employer_nssf" />
+									<field name="employer_nhif" />
+									<field name="employer_kra" />
+        						</xpath>
+						</field>
+				</record>
+		</data>
+</openerp>
+
