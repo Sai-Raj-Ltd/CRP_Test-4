@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Professional Payslip Templates",
+    'license': 'OPL-1',
     'support': 'support@optima.co.ke',
 
     'summary': """
@@ -33,7 +34,7 @@
         'views/company_footer.xml',
         'views/payslip_data.xml',
         'views/payslip_detailed_data.xml',
-        
+        'views/switch_template.xml',
         'views/report_detailed_template1.xml',
         'views/report_detailed_template2.xml',
         'views/report_detailed_template3.xml',
@@ -42,8 +43,7 @@
         'views/report_template2.xml',
         'views/report_template3.xml',
         'views/report_template4.xml',
-        # 'views/res_config_view.xml',
-        'views/switch_template.xml',
+        'views/res_config_view.xml',
         'views/payslip_view.xml',
     ],
     # only loaded in demonstration mode

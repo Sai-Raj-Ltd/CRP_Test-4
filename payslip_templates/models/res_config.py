@@ -34,77 +34,71 @@ from odoo import models, fields, api
 
 class hr_config_settings(models.TransientModel):
     _inherit = 'res.config.settings'
-
-    company_id = fields.Many2one(
-        'res.company',
-        string='Company',
-        required=True,
-        default=lambda self: self.env.user.company_id.id)
     payslip_logo = fields.Binary(
         string='Payslip Logo',
         attachment=True,
         help="Default Logo for Payslips",
-        related='company_id.payslip_logo')
-    template_id = fields.Many2one(
+        related='company_id.payslip_logo', readonly=False)
+    ptemplate_id = fields.Many2one(
         'ir.ui.view',
         'Payslip Template',
-        related='company_id.ptemplate_id')
+        related='company_id.ptemplate_id', readonly=False)
     detailed_template_id = fields.Many2one(
         'ir.ui.view',
         'Detailed Payslip Template',
-        related='company_id.pdetailed_template_id')
+        related='company_id.pdetailed_template_id', readonly=False)
     odd = fields.Char(
         'Odd parity Color',
         help="The background color for Odd lines in the payslip",
         related='company_id.podd',
-        required=True)
+        required=True, readonly=False)
     even = fields.Char(
         'Even parity Color',
         help="The background color for Even lines in the payslip",
         related='company_id.peven',
-        required=True)
+        required=True, readonly=False)
     theme_color = fields.Char(
         'Theme Color',
         help="The Main Theme color of the payslip",
         related='company_id.ptheme_color',
-        required=True)
+        required=True, readonly=False)
     theme_txt_color = fields.Char(
         'Theme Text Color',
         help="The font color of the areas with the theme color",
-        related='company_id.ptheme_txt_color')
+        required=True, related='company_id.ptheme_txt_color', readonly=False)
     text_color = fields.Char(
         'Text Color',
         help="The Text color of the payslip",
         related='company_id.ptext_color',
-        required=True)
+        required=True, readonly=False)
     name_color = fields.Char(
         'Company Name Color',
         help="The Text color of the Company Name",
         related='company_id.pname_color',
-        required=True)
+        required=True, readonly=False)
     cust_color = fields.Char(
         'Employee Name Color',
         help="The Text color of the Employee Name",
         related='company_id.pcust_color',
-        required=True)
+        required=True, readonly=False)
     header_font = fields.Selection([(x,
                                      str(x)) for x in range(1,
                                                             51)],
                                    string="Header Font-Size(px):",
                                    related='company_id.pheader_font',
-                                   required=True)
+                                   required=True, readonly=False)
     body_font = fields.Selection([(x,
                                    str(x)) for x in range(1,
                                                           51)],
                                  string="Body Font-Size(px):",
                                  related='company_id.pbody_font',
-                                 required=True)
+                                 required=True, readonly=False)
     footer_font = fields.Selection([(x,
                                      str(x)) for x in range(1,
                                                             51)],
                                    string="Footer Font-Size(px):",
                                    related='company_id.pfooter_font',
-                                   required=True)
+                                   required=True, readonly=False)
     font_family = fields.Char(
         'Font Family:',
-        related='company_id.pfont_family')
+        related='company_id.pfont_family', readonly=False)

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-
 <data>
   <template id="PAYSLIP_1_detailed" name="Modern Detailed Template">
     <!-- Multicompany -->

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-
 <data>
-<template id="PAYSLIP_2_detailed" name="Odoo Detailed Template">
+		<record id="hr_payroll.report_payslipdetails" model="ir.ui.view">
+				<field name="name">Odoo Detailed Payslip Template</field>
+		</record>
+<template id="PAYSLIP_2_detailed" name="Odoo Detailed Payslip Template">
   <t t-call="hr_payroll.report_payslipdetails"/>
 </template>
 </data>

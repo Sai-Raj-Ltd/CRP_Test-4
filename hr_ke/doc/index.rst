@@ -20,5 +20,5 @@ Please refer to ``Module Description`` for illustrated steps on how to configure
 Compatibility
 ------------
 
-- Fully Supports Odoo Version 11.0 Community and Enterprise Editions
+- Fully Supports Odoo Version 12.0 Community and Enterprise Editions
 

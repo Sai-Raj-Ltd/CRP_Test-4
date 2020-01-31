@@ -1,41 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-# License LGPL-3.0 or later (https://opensource.org/licenses/LGPL-3.0).
-#
-# This software and associated files (the "Software") may only be used (executed,
-# modified, executed after modifications) if you have purchased a valid license
-# from the authors, typically via Odoo Apps, or if you have received a written
-# agreement from the authors of the Software (see the COPYRIGHT section below).
-#
-# You may develop Odoo modules that use the Software as a library (typically
-# by depending on it, importing it and using its resources), but without copying
-# any source code or material from the Software. You may distribute those
-# modules under the license of your choice, provided that this license is
-# compatible with the terms of the Odoo Proprietary License (For example:
-# LGPL, MIT, or proprietary licenses similar to this one).
-#
-# It is forbidden to publish, distribute, sublicense, or sell copies of the Software
-# or modified copies of the Software.
-#
-# The above copyright notice and this permission notice must be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-#
-#########COPYRIGHT#####
-# © 2016 Bernard K Too<bernard.too@optima.co.ke>
-"""
 import logging
+
 from odoo import models, fields, api, _
 from odoo.addons import decimal_precision as dp
 from odoo.exceptions import ValidationError
 from odoo.tools.safe_eval import safe_eval as Eval
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -48,7 +19,7 @@ class KESalaryRule(models.Model):
         """
         @param rule_id: id of hr.salary.rule to be tested
         @param contract_id: id of hr.contract to be tested
-        @return: returns True if the given rule match the\
+        @return: returns True if the given rule match the
         condition for the given contract. Return False otherwise.
         """
         localdict = dict(localdict, rule=self)  # include current rule object
@@ -57,10 +28,11 @@ class KESalaryRule(models.Model):
     @api.multi
     def _compute_rule(self, localdict):
         """
-        :param rule_id: id of rule to compute
-        :param localdict: dictionary containing the environement in which to compute the rule
-        :return: returns a tuple build as the base/amount computed, the quantity and the rate
-        :rtype: (float, float, float)
+        :param  rule_id: id  of rule  to compute
+        :param localdict:  dictionary containing the environement
+        in which to compute the rule
+        return: returns a tuple build as the base/amount computed,
+        the quantity and the rate :type: (float, float, float)
         """
         localdict = dict(localdict, rule=self)  # include current rule object
         return super(KESalaryRule, self)._compute_rule(localdict)
@@ -81,7 +53,7 @@ class KECarBenefit(models.Model):
             ('pickup',
              'Pick Ups,Panel Vans Uncovered'),
             ('cruiser',
-             'Land Rovers/Cruisers(excluding Range Rover and similar vehicles)')],
+             'Land Rovers/Cruisers(excluding Range Rover and similar cars)')],
         required=True,
         default='saloon',
         string="Body Type:")
@@ -119,7 +91,8 @@ class KEBenefitType(models.Model):
             ('active',
              '=',
              True)],
-        help='Pick a salary rule that will be used to compute this type of benefit in the payslip',
+        help='Pick a salary rule that will be used to compute this \
+        type of benefit in the payslip',
         required=True)
 
 
@@ -132,19 +105,10 @@ class KECashAllowancesType(models.Model):
 
     name = fields.Char('Name of Cash Allowance', required=True)
     rule_id = fields.Many2one(
-        'hr.salary.rule',
-        'Salary Rule',
-        required=True,
-        domain=[
-            ('sequence',
-             '>=',
-             11),
-            ('sequence',
-             '<=',
-             24),
-            ('active',
-             '=',
-             True)],
+        'hr.salary.rule', 'Salary Rule', required=True,
+        domain=[('sequence', '>=', 11),
+                ('sequence', '<=', 24),
+                ('active', '=', True)],
         help="""This is the Salary rule that will be used to compute the amount of\
                 allowance in the payslip for each applicable employee""")
 
@@ -197,9 +161,10 @@ class KEDeductionsType(models.Model):
             ('active',
              '=',
              True)],
-        help="""This is the payslip rule which is used to calculate how much of this deduction \
-                will be effected in the payroll.\nTry to match the name of the rule with the \
-                name of the deduction you are creating""")
+        help="""This is the payslip rule which is used to calculate \
+        how much of this deduction will be effected in the payroll.\
+        Try to match the name of the rule with the name of the \
+        deduction you are creating""")
 
 
 class KETaxRelief(models.Model):
@@ -219,6 +184,16 @@ class KETaxRelief(models.Model):
         self.name = str(self.relief_id.name) + \
             ' (' + str(self.employee_id.name) + ')'
 
+    def _default_formula(self):
+        return """
+# Available variables for use in formula:
+# -----------------------------------------
+# employee: selected employee record.
+# relief: the current relief  record.
+# Note: returned value have to be set in the variable 'result'
+result = 0.00
+"""
+
     @api.one
     @api.depends('computation', 'fixed')
     def compute_relief(self):
@@ -234,8 +209,8 @@ class KETaxRelief(models.Model):
                 Eval(self.formula, localdict, mode='exec', nocopy=True)
             except BaseException:
                 raise ValidationError(
-                    _('Wrong formula defined for this Tax Relief: %s\n [%s].') %
-                    (self.name, self.formula))
+                    _('Wrong formula defined for this \
+                      Tax Relief: %s\n [%s].') % (self.name, self.formula))
             self.amount = localdict['result']
         else:
             self.amount = 0.00
@@ -259,7 +234,8 @@ class KETaxRelief(models.Model):
         compute='compute_relief',
         digits=dp.get_precision('Account'),
         store=True,
-        help="This is computed value of the relief if you are using a formula else it is the fixed value of the relief")
+        help="This is computed value of the relief if you are using a formula\
+        else it is the fixed value of the relief")
     computation = fields.Selection(
         [
             ('fixed',
@@ -271,7 +247,10 @@ class KETaxRelief(models.Model):
         help="Choose a method to use to arrive at a value for the relief")
     formula = fields.Text(
         'Formula',
-        help="Define a formula to use to arrive at the tax relief if its based on certain variables. Available variables are stated in the text area of the formula")
+        default=_default_formula,
+        help="Define a formula to use to arrive at the tax relief if its \
+        based on certain variables. Available variables are stated in the\
+        text area of the formula")
     company_id = fields.Many2one(
         'res.company',
         'Company',
@@ -283,16 +262,6 @@ class KETaxRelief(models.Model):
         related='company_id.currency_id',
         string="Currency",
         required=True)
-
-    _defaults = {
-        'formula': '''
-# Available variables:
-#----------------------
-# contract: hr.contract object
-# Note: returned value have to be set in the variable 'result'
-result = 0.00
-'''
-    }
 
 
 class KEDeductions(models.Model):
@@ -323,11 +292,22 @@ class KEDeductions(models.Model):
                 Eval(self.formula, localdict, mode='exec', nocopy=True)
             except BaseException:
                 raise ValidationError(
-                    _('Error in the formula defined for this deduction: %s\n [%s].') %
+                    _('Error in the formula defined for this\
+                      deduction: %s\n [%s].') %
                     (self.name, self.formula))
             self.amount = localdict['result']
         else:
             self.amount = 0.00
+
+    def _default_formula(self):
+        return """
+# Available variables for use in formula:
+# --------------------------------------
+# employee: selected employee record
+# deduction: current deduction record
+# Note: returned value have to be set in the variable 'result'
+result = 0.00
+"""
 
     @api.multi
     def _default_company_id(self):
@@ -357,7 +337,8 @@ class KEDeductions(models.Model):
         'hr.salary.rule',
         related='deduction_id.rule_id',
         string='Payslip Rule',
-        help="The Payslip or salary rule used to compute the value of this deduction")
+        help="The Payslip or salary rule used to compute the value of \
+        this deduction")
     employee_id = fields.Many2one(
         'hr.employee',
         'Employee Name',
@@ -365,7 +346,8 @@ class KEDeductions(models.Model):
     fixed = fields.Float(
         'Fixed Amount',
         digits=dp.get_precision('Account'),
-        help="Fixed value of this deduction as opposed to a changing value based on formula")
+        help="Fixed value of this deduction as opposed to a changing value \
+        based on formula")
     computation = fields.Selection([('fixed',
                                      'Fixed Amount'),
                                     ('formula',
@@ -373,26 +355,22 @@ class KEDeductions(models.Model):
                                     ],
                                    'Computation Method',
                                    required=True,
-                                   help="Select a method to use to compute this deduction.")
+                                   help="Select a method to use to compute \
+                                   this deduction.")
     amount = fields.Float(
         'Amount to Deduct',
         compute='compute_deduction',
         digits=dp.get_precision('Account'),
         store=True,
-        help="This is the computed amount to be deducted after tax, this amount is equal to the fixed amount if the computation method is set to 'Fixed Amount'")
+        help="This is the computed amount to be deducted after tax, \
+        this amount is equal to the fixed amount if the computation \
+        method is set to 'Fixed Amount'")
     formula = fields.Text(
         'Formula',
-        help="The Formula to use in computing the dedcutions. The variables containing useful data is stated within the text inside the formula ")
-
-    _defaults = {
-        'formula': '''
-# Available variables:
-#----------------------
-# employee: hr.employee object
-# Note: returned value have to be set in the variable 'result'
-result = 0.00
-'''
-    }
+        default=_default_formula,
+        help="The Formula to use in computing the dedcutions. \
+        The variables containing useful data is stated within \
+        the text inside the formula ")
 
 
 class KEBenefits(models.Model):
@@ -432,11 +410,21 @@ class KEBenefits(models.Model):
     def _default_company_id(self):
         return self.env.user.company_id.id
 
+    def _default_formula(self):
+        return """
+# Available variables for use in formula:
+# --------------------------------------
+# contract: the current contract record
+# benefit: the current benefit record
+# Note: returned value have to be set in the variable 'result'
+result = 0.00
+"""
     name = fields.Char(
         'Name',
         compute='compute_name',
         store=True,
-        help="The name of this benefit as would appear in the employee contract.")
+        help="The name of this benefit as would appear in \
+        the employee contract.")
     benefit_id = fields.Many2one(
         'ke.benefit.type',
         'Type of Benefit',
@@ -456,18 +444,22 @@ class KEBenefits(models.Model):
         compute='compute_benefit',
         digits=dp.get_precision('Account'),
         store=True,
-        help="This is the computed value of the benefit if you are using a formula else this value is equal to the fixed value if there is not formula to apply ")
+        help="This is the computed value of the benefit if you are using \
+        a formula else this value is equal to the fixed value if there \
+        is not formula to apply ")
     computation = fields.Selection([('fixed',
                                      'Use the fixed value'),
                                     ('formula',
                                      'Use a Formula')],
                                    'Computation Method',
                                    required=True,
-                                   help="Select a method to use to compute the benefit")
+                                   help="Select a method to use to compute the\
+                                   benefit")
     fixed = fields.Float(
         'Fixed Value',
         digits=dp.get_precision('Account'),
-        help="This is a fixed value of the benefit as opposed to a changing value based on formula")
+        help="This is a fixed value of the benefit as opposed to a changing \
+        value based on formula")
     company_id = fields.Many2one(
         'res.company',
         'Company',
@@ -481,16 +473,9 @@ class KEBenefits(models.Model):
         required=True)
     formula = fields.Text(
         'Formula',
-        help="Define a formula to use to compute the value of the benefit if the value depends on certain variables. The available variables are listed in the formula area.")
-    _defaults = {
-        'formula': '''
-# Available variables:
-#----------------------
-# contract: hr.contract object
-# Note: returned value have to be set in the variable 'result'
-result = 0.00
-'''
-    }
+        default=_default_formula,
+        help="Define a formula to use to compute the value of the benefit \
+        if the value depends on certain variables. The available variables are listed in the formula area.")
 
 
 class KECashAllowances(models.Model):
@@ -528,6 +513,15 @@ class KECashAllowances(models.Model):
     def _default_company_id(self):
         return self.env.user.company_id.id
 
+    def _default_formula(self):
+        return """
+# Available variables for use in formula:
+# ----------------------------------------
+# contract: the current contract record
+# Note: returned value have to be set in the variable 'result'
+result = 0.00
+"""
+
     name = fields.Char('Name', compute='compute_name', store=True)
     cash_allowance_id = fields.Many2one(
         'ke.cash.allowances.type',
@@ -561,17 +555,7 @@ class KECashAllowances(models.Model):
         related='company_id.currency_id',
         string="Currency",
         required=True)
-    formula = fields.Text('Formula')
-
-    _defaults = {
-        'formula': '''
-# Available variables:
-#----------------------
-# contract: hr.contract object
-# Note: returned value have to be set in the variable 'result'
-result = 0.00
-'''
-    }
+    formula = fields.Text('Formula', default=_default_formula)
 
 
 class KERelationType(models.Model):
@@ -607,10 +591,14 @@ class KEKins(models.Model):
 class KEEmployee(models.Model):
     _inherit = ["hr.employee"]
 
-    @api.one
+    @api.multi
     @api.depends('write_date')
-    def compute_employee_number(self):
-        self.employee_no = str(self.id).zfill(4)
+    def _compute_employee_number(self):
+        for rec in self:
+            if rec.payroll_no:
+                rec.employee_no = rec.payroll_no
+            else:
+                rec.employee_no = str(rec.id).zfill(4)
 
     @api.multi
     def _get_default_currency(self):
@@ -622,15 +610,13 @@ class KEEmployee(models.Model):
         default=_get_default_currency)
     nhif = fields.Char(
         'NHIF No.',
-        required=True,
         help="Fill in the NHIF number issued by National Hospital Insurance Fund. For those employees in the formal sector, it is compulsory to be a member.")
     nssf_vol = fields.Boolean(
         'NSSF Voluntary Contributions?',
         default=False,
         help="Check this box if the employee or employer or both are is willing to contribute voluntarily to NSSF Scheme.The amount will be a voluntary top up by either employee or employer over and above the mandatory tier I and tier II contributions")
     nssf_t3 = fields.Boolean(
-        'NSSF Tier III Contributions?',
-        default=False,
+        'NSSF Tier III Contributions?', default=False,
         help="This is for pension contributions above the mandatory amount defined in the NSSF Act 2013.The exact figure will vary from employer to employer")
     nssf_vol_mem = fields.Float(
         'Voluntary Member Amount',
@@ -646,11 +632,9 @@ class KEEmployee(models.Model):
         digits=dp.get_precision('Account'))
     nssf = fields.Char(
         'NSSF No.',
-        required=True,
         help="key in the Employee NSSF number. It is mandatory to register as a memmber of NSSF as an employee")
     helb = fields.Boolean(
-        'HELB Loan ?',
-        default=False,
+        'HELB Loan ?', default=False,
         help="Check this box if the employee is currently paying for Higher Education Loans Board Loan")
     helb_rate = fields.Float(
         'HELB Monthly Amount',
@@ -658,20 +642,22 @@ class KEEmployee(models.Model):
         help="HELB will issue Loan payment instructions for your employee upon contacting them. Upon the employment of any loanee, you need to inform the Board in writing within a period of three months of such employment. Fill in the monthly figure advised by HELB.")
     tax_pin = fields.Char(
         'KRA PIN',
-        required=True,
         help="Key in the 11 charater PIN of the employee, It is mandatory to have a PIN as a tax payer")
     # Others
-    #birth_country = fields.Many2one('res.country', 'Country of Birth')
+    # birth_country = fields.Many2one('res.country', 'Country of Birth')
     kins = fields.One2many(
         'ke.employee.kin',
         'employee_id',
         'Dependants',
         help="These are records of details of family members of the employee who may be benefiting from Health Insurance or any other such benefits offered by employer")
     employee_no = fields.Char(
-        'Employee Number',
-        compute='compute_employee_number',
+        'Internal Number',
+        compute='_compute_employee_number',
         store=True,
-        help="This is a unique number assigned to each employee by the system and is often used in the payroll")
+        help="This is a unique number assigned to each employee internally in the DB. If you do not set the payroll number, this number will be used as the payroll number")
+    payroll_no = fields.Char(
+        'Payroll Number',
+        help="a unique number assigned to each employee to be used in payroll")
     personal_email = fields.Char(
         'Personal Email',
         help="Personal Email that can be used to reach the employee before or after employment")
@@ -681,9 +667,7 @@ class KEEmployee(models.Model):
         'Deductions',
         help="These are after-tax deductions (other than NHIF and HELB) made on employee salary.They include contributions or deductions towards SACCO,Salary Advance,etc")
     reliefs = fields.One2many(
-        'ke.reliefs',
-        'employee_id',
-        'Tax Relief',
+        'ke.reliefs', 'employee_id', 'Tax Relief',
         help="These are tax reliefs (other than the Personal Tax Relief) entitled to th employee..example is the Insurance relief.")
     # disability Tax Exemption
     disability = fields.Boolean(
@@ -720,8 +704,11 @@ class KEEmployee(models.Model):
         'Resident?',
         default=True,
         help="Check this box if the employee is a resident in Kenya. Such inviduals are entitled to a personal tax relief of Kshs. 1,162 per month and insurance relief if any")
-    emp_type = fields.Selection([('primary', 'Primary Employee'), ('secondary', 'Secondary Employee')], default='primary', required=True, string="Type of Employee:",
-                                help='[primary] - Select this option of this is the primary employment for the employee\n [Secodary] -Select tis option if this is the secondary employment for the employee.\n Default case is [primary] ')
+    emp_type = fields.Selection(
+        [('primary', 'Primary Employee'),
+         ('secondary', 'Secondary Employee')],
+        default='primary', required=True, string="Type of Employee:",
+        help='[primary] - Select this option of this is the primary employment for the employee\n [Secodary] -Select tis option if this is the secondary employment for the employee.\n Default case is [primary] ')
     director = fields.Boolean(
         'Employee is a Director?',
         default=False,
@@ -731,8 +718,13 @@ class KEEmployee(models.Model):
                                       ("nonfull",
                                        "Non Full Time Service Director")],
                                      string="Director Type")
-    global_income = fields.Float('Global Income (Non Full Time Director):', dp=(
-        32, 2), help="Please record the Global Income of a Non Full time Service director. This amount will be used in computing the taxable pay as per the law")
+    global_income = fields.Float(
+        'Global Income (Non Full Time Director):', dp=(32, 2),
+        help="Please record the Global Income of a Non Full time Service director. This amount will be used in computing the taxable pay as per the law")
+
+    _sql_constraints = [
+        ('ke_payroll_no', 'unique (payroll_no)',
+         "Another employee with the same payroll number exist!. Payroll number is unique.")]
 
 
 class KEContract(models.Model):
@@ -756,22 +748,15 @@ class KEContract(models.Model):
         'Cash Allowances',
         help='These are all cash allowances that are taxable as per kenyan law. These incluses overtime allowances, leave alllowances,transport allowances,house allowances, directors fee, lump sum pay, etc..')
     house = fields.Boolean(
-        'Housing Benefit ?',
-        default=False,
+        'Housing Benefit ?', default=False,
         help="Check this box if your employee is entitled to housing by employer. Such benefit is taxable")
-    house_type = fields.Selection([("own",
-                                    "Employer's Owned House"),
-                                   ("rented",
-                                    "Employer's Rented House"),
-                                   ("agric",
-                                    "Agriculture Farm"),
-                                   ("director",
-                                    "House to Non full time service Director")])
+    house_type = fields.Selection(
+        [("own", "Employer's Owned House"),
+         ("rented", "Employer's Rented House"),
+         ("agric", "Agriculture Farm"),
+         ("director", "House to Non full time service Director")])
     rent = fields.Float(
-        'Rent of House/Market Value',
-        dp=(
-            32,
-            2),
+        'Rent of House/Market Value', dp=(32, 2),
         help="This the actual rent of house paid by the employer if the house is rented by employer on behalf of the employee. If the House is owned by the Employer, then this is the Market value of the rent of the house.")
     rent_recovered = fields.Float('Rent Recovered from Employee:', dp=(
         32, 2), help="This is the actual rent recovered from the employee if any")

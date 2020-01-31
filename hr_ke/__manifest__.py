@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': "Payroll and HR System For Kenya",
+    'license': 'OPL-1',
     'support': 'support@optima.co.ke',
 
     'summary': """
@@ -12,14 +13,14 @@
     'images': ['static/description/hr.png'],
     'author': "Optima ICT Services LTD",
     'website': "http://www.optima.co.ke",
-    'price': 149,
+    'price': 351,
     'currency': 'EUR',
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/master/openerp/addons/base/module/module_data.xml
     # for the full list
     'category': 'Human Resources',
-    'version': '1.2',
+    'version': '0.6',
 
     # any module necessary for this one to work correctly
     'depends': ['base', 'hr', 'hr_contract', 'account', 'hr_payroll', 'hr_payroll_account', 'payslip_templates', 'send_payslips_by_email', 'document'],
@@ -31,15 +32,12 @@
         'security/rules.xml',
         'security/ir.model.access.csv',
         'views/overtime_view.xml',
+        'views/res_users.xml',
         'views/advance_view.xml',
         'views/payroll_view.xml',
         'views/contract_view.xml',
         'views/hr_view.xml',
-
-        'views/res_company.xml',
         'views/res_config_view.xml',
-        'views/res_config_view.xml',
-
         'data/overtime_data.xml',
         'data/salary_advance_data.xml',
         'data/categories_data.xml',
