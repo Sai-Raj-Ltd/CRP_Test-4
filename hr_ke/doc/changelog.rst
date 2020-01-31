@@ -1,34 +1,36 @@
 .. _changelog:
 
 Changelog
-=========
+===============
 
+`Version 0.6 (02 July 2019 01:20)`
+-----------------------------------
+`[minor release]`
+        - [IMP] Added `Payroll Number` field in the employee model. This field is editable unlike the `Internal Number`.
 
-`Version 1.2  (19th Feb 2019 15:58)`
+`Version 0.5 (28th March 2019 12:56)`
+-------------------------------------
+`[minor release]`
+        - Fixed a bug that caused errors in generating default values for `contract` and `employee` fields when adding cash allowances, non-cash benefits, tax relief, deductions and  dependants 
+
+`Version 0.4 (12th March 2019 19:42)`
+-------------------------------------
+`[minor release]`
+        - Fixed bug in the generation of default value for `employee_id` field in the overtime request processing
+        - Added a TAB in the User settings form to display employees who share the same login credentials
+
+`Version 0.3 (8th March 2019 14:16)`
 ----------------------------------
- `[Minor release]`
- - [FIX] Ran into issues with `datetime` and `fields.Datetime` in Windows
+`[Minor Release]`
+- Removed restriction on selecting employee when processing `overtime` and `salary Advance`.
 
-`Version 1.1  (8th Feb 2019 21:50)`
+`Version 0.2 (25th FEB 2019 20:39)`
 ----------------------------------
- `[Minor release]`
- - Changed the file naming criteria to use context timestamp with timezone info
+`[Minor Release]`
+- Migrated `overtime approver` and `salary advance approval` groups from base to hr_ke to avoid errors in windows
 
-`Version 1.0  (8th Feb 2019)`
+
+`Version 0.1 (7th FEB 2019)`
 ----------------------------
- `[Major release]`
-- Fixed bugs related to salary advance and the overtime request modules. There are changes to the DB schema which requires fresh install 
-
-`Version 0.3  (31st Jan 2019)`
-----------------------------
-- Fixed bugs related to first name and last name printing in excel 
-
-`Version 0.2 (30th Jan 2019)`
-----------------------------
-- Fixed bugs concerning installation on Odoo 11
-
-
-`Version 0.1 (11 OCT 2017)`
--------------------------
-- New module for Odoo 11.0 community and Enterprise editions
+- New module for Odoo 12.0 community and Enterprise editions
 

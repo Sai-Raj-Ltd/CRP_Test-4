@@ -74,7 +74,6 @@ class KeSalaryAdvance(models.Model):
         'Employee Name',
         default=_employee_get,
         required=True,
-        domain="[('user_id','=', uid)]",
         track_visibility='always',
         readonly=True,
         states={
@@ -142,8 +141,8 @@ class KeSalaryAdvance(models.Model):
                     'Your manager does have access to the HR system to \
                             approve your salary advance request. Please consult HR')
             else:
-                record.message_subscribe_users(
-                    user_ids=[record.employee_id.parent_id.user_id.id])
+                # record.message_subscribe_users(
+                #    user_ids=[record.employee_id.parent_id.user_id.id])
                 return record.write({'state': 'approval'})
 
     @api.multi

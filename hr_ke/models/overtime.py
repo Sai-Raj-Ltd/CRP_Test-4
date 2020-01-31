@@ -32,22 +32,19 @@
 # © 2016 Bernard K Too<bernard.too@optima.co.ke>
 """
 import logging
-import datetime
-from datetime import datetime, date, time
+from datetime import datetime
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-from dateutil.relativedelta import relativedelta
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
-import dateutil.parser
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 LOGGER = logging.getLogger(__name__)
-import pdb
 
 
 class KeDepartment(models.Model):
     """ inherited to add overtime related features """
     _inherit = ["hr.department"]
 
-    company_currency_id = fields.Many2one(related='company_id.currency_id')
+    company_currency_id = fields.Many2one(
+        'res.currency', related='company_id.currency_id')
     overtime = fields.Monetary(
         'Overtime Hourly rate',
         currency_field='company_currency_id', track_visibility='onchange')
@@ -57,8 +54,21 @@ class KeOvertime(models.Model):
     """ Overtime request model """
     _name = "ke.overtime"
     _description = "Overtime Request"
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
+    #_inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
+    _inherit = ['mail.channel']
     _order = "id desc"
+
+    @api.multi
+    @api.depends('date_from', 'date_to')
+    def compute_hours(self):
+        """ calculates hours between two dates"""
+        for rec in self:
+            diff = rec.date_to - rec.date_from
+            #diff = datetime.strptime(rec.date_to, DEFAULT_SERVER_DATETIME_FORMAT) - datetime.strptime(rec.date_from, DEFAULT_SERVER_DATETIME_FORMAT)
+            rec.hours = (diff.days * 24) + (diff.seconds / 3600)
+            if rec.hours < 0:
+                raise ValidationError(
+                    "'End Date' is older than 'Start Date' in time entry. Please correct this")
 
     def default_date(self):
         """ returns today's date and time """
@@ -66,7 +76,8 @@ class KeOvertime(models.Model):
 
     @api.multi
     def _employee_get(self):
-        return self.employee_id.search([('user_id', '=', self.env.user.id)]).id
+        return self.employee_id.search(
+            [('user_id', '=', self.env.user.id)], limit=1).id
 
     @api.multi
     def check_login_user(self):
@@ -79,7 +90,7 @@ class KeOvertime(models.Model):
         """ sets boolean value depending on user department """
         for record in self:
             record.same_dept = bool(record.employee_id.search(
-                [('user_id', '=', record.env.user.id)]).department_id.id == record.dept_id.id)
+                [('user_id', '=', record.env.user.id)], limit=1).department_id.id == record.dept_id.id)
 
     name = fields.Char(
         'Brief Title', required=True, readonly=True, states={
@@ -95,7 +106,6 @@ class KeOvertime(models.Model):
         track_visibility='always',
         default=_employee_get,
         required=True,
-        domain="[('user_id','=', uid)]",
         readonly=True,
         states={
             'draft': [
@@ -137,7 +147,7 @@ class KeOvertime(models.Model):
         track_visibility='onchange')
     hours = fields.Float(
         'Hours',
-        compute='_total_minutes',
+        compute='compute_hours',
         store=True,
         track_visibility='onchange')
     description = fields.Html(
@@ -157,44 +167,6 @@ class KeOvertime(models.Model):
     same_user = fields.Boolean(compute='check_login_user')
     same_dept = fields.Boolean(compute='check_user_dept')
 
-    @api.depends('date_from', 'date_to')
-    def _total_minutes(self):
-        #pdb.set_trace()
-        if self.date_from or self.date_to:
-            start_dt = fields.Datetime.from_string(self.date_from)
-            finish_dt = fields.Datetime.from_string(self.date_to)
-            difference = relativedelta(finish_dt, start_dt)
-            hours = difference.hours or 0
-            days = difference.days*24 or 0
-            minui = difference.minutes/60 or 0
-            self.hours = hours + days + minui
-
-            if self.hours < 0:
-                raise ValidationError(
-                        "'End Date' is older than 'Start Date' in time entry. Please correct this")
-
-
-
-    # @api.multi
-    # @api.depends('date_from', 'date_to')
-    # def _compute_hours(self):
-    #     """ calculates hours between two dates"""
-    #     if self.date_from and self.date_to:
-    #         for rec in self:
-    #
-    #             diff = datetime.strptime(rec.date_to, DEFAULT_SERVER_DATETIME_FORMAT) - datetime.strptime(
-    #                 rec.date_from, DEFAULT_SERVER_DATETIME_FORMAT)
-    #             rec.hours = diff.total_seconds() / 3600.0
-    #
-    #             # pdb.set_trace()
-    #             # diff = relativedelta(rec.date_to,  rec.date_from)
-    #             # rec.hours = diff.hours
-    #
-    #         if rec.hours < 0:
-    #             raise ValidationError(
-    #                 "'End Date' is older than 'Start Date' in time entry. Please correct this")
-
-
     @api.multi
     def overtime_approval(self):
         """Send a request for approval"""
@@ -210,8 +182,8 @@ class KeOvertime(models.Model):
                     'Your manager does have access to the HR system\
                             to approve your overtime request. Please consult HR')
             else:
-                record.message_subscribe_users(
-                    user_ids=[record.employee_id.parent_id.user_id.id])
+                # record._subscribe_users(
+                # user_ids=[record.employee_id.parent_id.user_id.id])
                 return record.write({'state': 'approval'})
 
     @api.multi

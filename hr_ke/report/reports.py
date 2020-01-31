@@ -30,16 +30,19 @@
 #########COPYRIGHT#####
 # © 2016 Bernard K Too<bernard.too@optima.co.ke>
 
-import logging
-_logger = logging.getLogger(__name__)
-from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError, AccessError
-import re
-import os
 import base64
-import datetime
-import tempfile
+import logging
+import os
+import re
 import string
+import tempfile
+
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, AccessError, UserError
+from openpyxl.styles import PatternFill, Border, Alignment, Font
+
+
+_logger = logging.getLogger(__name__)
 try:
     import openpyxl
 except ImportError:
@@ -51,7 +54,6 @@ except ImportError:
     msg = _('Install python module "csv" in order to generate CSV')
     raise ValidationError(msg)
 
-from openpyxl.styles import Side, PatternFill, Border, Alignment, GradientFill, Protection, Font
 # Paper size
 #PAPERSIZE_LETTER = '1'
 #PAPERSIZE_LETTER_SMALL = '2'
@@ -80,7 +82,7 @@ class PayslipReports(models.Model):
             filename_slip = 'Payslip_' + re.sub('[^A-Za-z0-9]+',
                                                 '_',
                                                 rec.number) + '-' + fields.Datetime.context_timestamp(self,
-                                                                                                      datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
+                                                                                                      fields.Datetime.now()). strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
             wb = openpyxl.Workbook()
             ws = wb.active
             ws.page_setup.orientation = ws.ORIENTATION_PORTRAIT
@@ -192,8 +194,7 @@ class PayslipReports(models.Model):
             logo_fd, logo_path = tempfile.mkstemp(
                 suffix='.png', prefix='logo.tmp.')
             with open(logo_path, "wb") as logo:
-                logo.write(base64.decodestring(
-                    rec.journal_id.company_id.logo))
+                logo.write(base64.decodestring(rec.journal_id.company_id.logo))
                 logo.close()
             img = openpyxl.drawing.image.Image(logo_path)
             # rec.env['hr.ke'].delete_tempfile(logo_path)
@@ -206,17 +207,13 @@ class PayslipReports(models.Model):
             ws['A8'] = 'EMP. NAME:'
             ws['B8'] = rec.employee_id.name or None
             ws['A9'] = 'EMP. ADDRESS:'
-            ws['B9'] = ((rec.employee_id.address_home_id.street or '') +
-                        '\n' +
-                        (rec.employee_id.address_home_id.street2 or '') +
-                        '\n' +
-                        (rec.employee_id.address_home_id.city or '') +
-                        ' ' +
-                        (rec.employee_id.address_home_id.state_id.code or '') +
-                        ' ' +
-                        (rec.employee_id.address_home_id.zip or '') +
-                        '\n' +
-                        (rec.employee_id.address_home_id.country_id.name or ''))
+            ws['B9'] = (
+                (rec.employee_id.address_home_id.street or '') + '\n' +
+                (rec.employee_id.address_home_id.street2 or '') + '\n' +
+                (rec.employee_id.address_home_id.city or '') + ' ' +
+                (rec.employee_id.address_home_id.state_id.code or '') + ' ' +
+                (rec.employee_id.address_home_id.zip or '') + '\n' +
+                (rec.employee_id.address_home_id.country_id.name or ''))
 
             ws['C8'] = 'DEPT:'
             ws['D8'] = rec.employee_id.department_id.name or None
@@ -288,12 +285,37 @@ class PayrollReports(models.Model):
     _inherit = 'hr.payslip.run'
 
     @api.multi
+    def BatchConfirmPayslip(self):
+        """
+        This  method will confirm  payslips and possible generate accounting
+        entries for those salary rules that have accounting settings configured
+        """
+        for batch in self:
+            for slip in batch.slip_ids:
+                if not slip.line_ids:
+                    slip.compute_sheet()
+            # get all empty slips
+            empty_slips = batch.slip_ids.filtered(
+                lambda x: not x.line_ids or
+                not x.details_by_salary_rule_category)
+            # raise warning if some slips are empty
+            if empty_slips:
+                msg = _("Missing payslip lines:")
+                for num, slip in enumerate(empty_slips):
+                    msg += "\n %s. %s" % (num+1, slip.name)
+                raise UserError(msg)
+            for slip in batch.slip_ids:
+                # only confirm those that have not been previosly confirmed
+                if slip.state in ['draft']:
+                    slip.action_payslip_done()
+
+    @api.multi
     def GetNSSFReturns(self):
         for rec in self:
             if rec.slip_ids:
                 filename_nssf = 'NSSF_Returns-' + re.sub(
                     '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                    self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
+                    self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
                 wb = openpyxl.Workbook()
                 ws = wb.active
                 t = 0
@@ -324,8 +346,10 @@ class PayrollReports(models.Model):
                 ws['A4'] = 'EMPLOYER NAME'
                 ws['B4'] = rec.journal_id.company_id.name or None
                 ws['A5'] = 'FISCAL PERIOD'
-                ws['B5'] = datetime.datetime.strptime(
-                    rec.date_end, '%Y-%m-%d').strftime('%m%Y')
+                # ws['B5'] = datetime.datetime.strptime(
+                #    rec.date_end, '%Y-%m-%d').strftime('%m%Y')
+                ws['B5'] = fields.Date.from_string(
+                    rec.date_end).strftime('%m%Y')
                 # DATA HEADERS
                 ws['A' + str(fr - 1)] = 'PAYROLL NUMBER'
                 ws['B' + str(fr - 1)] = 'SURNAME'
@@ -342,30 +366,57 @@ class PayrollReports(models.Model):
                 # DATA ITSELF
                 for key, slip in enumerate(rec.slip_ids):
                     if slip.line_ids:
-                        income = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                            'hr_ke.ke_rule30').id), ('slip_id', '=', slip.id)], limit=1).total  # Pensionable income
+                        income = slip.line_ids.search(
+                            [('salary_rule_id', '=', rec.env.ref(
+                                  'hr_ke.ke_rule30').id),
+                             ('slip_id', '=', slip.id)],
+                            limit=1).total  # Pensionable income
                     else:
                         msg = _(
                             'No Payslip Details!\nPlease compute the payslip for %s' %
                             slip.employee_id.name)
                         raise ValidationError(msg)
-                    tiers_m['t1'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule46').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier I contributions
-                    tiers_m['t2'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule47').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier II contributions
-                    tiers_m['t3'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule48').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier III contributions
-                    tiers_m['v1'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule49').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Voluntary contributions
+                    tiers_m['t1'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule46').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier I contributions
+                    tiers_m['t2'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule47').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier II contributions
+                    tiers_m['t3'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule48').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier III contributions
+                    tiers_m['v1'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule49').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Voluntary contributions
                     # Employer Contributions
-                    tiers_e['t1'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule56').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier I contributions
-                    tiers_e['t2'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule57').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier II contributions
-                    tiers_e['t3'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule58').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Tier III contributions
-                    tiers_e['v1'] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule59').id), ('slip_id', '=', slip.id)], limit=1).total  # NSSF Voluntary contributions
+                    tiers_e['t1'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule56').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier I contributions
+                    tiers_e['t2'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule57').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier II contributions
+                    tiers_e['t3'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule58').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Tier III contributions
+                    tiers_e['v1'] = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule59').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # NSSF Voluntary contributions
                     # Dermine the TOTALS
                     total_income += income
                     total_tier1e += tiers_e['t1']
@@ -459,7 +510,7 @@ class PayrollReports(models.Model):
             if rec.slip_ids:
                 filename_nhif = 'NHIF_ByProduct-' + re.sub(
                     '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                    self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
+                    self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
                 wb = openpyxl.Workbook()
                 ws = wb.active
                 fr = 6
@@ -472,8 +523,10 @@ class PayrollReports(models.Model):
                 ws['A2'] = 'EMPLOYER NAME'
                 ws['B2'] = rec.journal_id.company_id.name or None
                 ws['A3'] = 'MONTH OF CONTRIBUTION'
-                ws['B3'] = datetime.datetime.strptime(
-                    rec.date_end, '%Y-%m-%d').strftime('%Y-%m')
+                # ws['B3'] = datetime.datetime.strptime(
+                #    rec.date_end, '%Y-%m-%d').strftime('%Y-%m')
+                ws['B3'] = fields.Date.from_string(
+                    rec.date_end).strftime('%Y-%m')
                 # DATA HEADERS
                 ws['A' + str(fr - 1)] = 'PAYROLL NO'
                 ws['B' + str(fr - 1)] = 'LAST NAME'
@@ -484,8 +537,11 @@ class PayrollReports(models.Model):
                 # DATA ITSELF
                 for key, slip in enumerate(rec.slip_ids):
                     if slip.line_ids:
-                        nhif = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                            'hr_ke.ke_rule106').id), ('slip_id', '=', slip.id)], limit=1).total or 0.0  # NHIF contributions
+                        nhif = slip.line_ids.search(
+                            [('salary_rule_id', '=', rec.env.ref(
+                                  'hr_ke.ke_rule106').id),
+                             ('slip_id', '=', slip.id)],
+                            limit=1).total or 0.0  # NHIF contributions
                     else:
                         msg = _(
                             'No Payslip Details!\nPlease compute the payslip for %s' %
@@ -527,7 +583,7 @@ class PayrollReports(models.Model):
             if rec.slip_ids:
                 filename_summary = 'Payroll_Summary-' + re.sub(
                     '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                    self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
+                    self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
                 wb = openpyxl.Workbook()
                 ws = wb.active
                 fr = 7  # First row of data
@@ -567,10 +623,16 @@ class PayrollReports(models.Model):
                     ws[x + str(fr - 1)] = cols[k]
 
                 for key, slip in enumerate(rec.slip_ids):
-                    cross_pay = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule30').id), ('slip_id', '=', slip.id)], limit=1).total or 0.0  # Total Gross Pay
-                    cross_taxable = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule45').id), ('slip_id', '=', slip.id)], limit=1).total or 0.0  # Total Gross taxable Pay
+                    cross_pay = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule30').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total Gross Pay
+                    cross_taxable = slip.line_ids.search(
+                        [('salary_rule_id', '=',
+                          rec.env.ref('hr_ke.ke_rule45').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total Gross taxable Pay
                     deds = slip.line_ids.search(
                         [
                             ('salary_rule_id',
@@ -580,56 +642,63 @@ class PayrollReports(models.Model):
                              '=',
                              slip.id)],
                         limit=1).total or 0.0  # Total  after tax Deductions
-                    helb = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule107').id), ('slip_id', '=', slip.id)], limit=1).total or 0.0  # Total  HELB
-                    nhif = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule106').id), ('slip_id', '=', slip.id)], limit=1).total or 0.0  # Total  NHIF
+                    helb = slip.line_ids.search(
+                        [('salary_rule_id', '=', rec.env.ref(
+                              'hr_ke.ke_rule107').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total  HELB
+                    nhif = slip.line_ids.search(
+                        [('salary_rule_id', '=', rec.env.ref(
+                              'hr_ke.ke_rule106').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total  NHIF
 
                     ws['A' + str(fr + key)
                        ] = slip.employee_id.display_name.split(' ')[-1] or None
                     ws['B' + str(fr + key)
                        ] = slip.employee_id.display_name.split(' ')[0] or None
-                    ws['C' + str(fr + key)] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule10').id), ('slip_id', '=', slip.id)], limit=1).total  # Total Basic Pay
-                    ws['D' + str(fr + key)] = slip.line_ids.search([('salary_rule_id',
-                                                                     '=',
-                                                                     rec.env.ref('hr_ke.ke_rule25').id),
-                                                                    ('slip_id',
-                                                                     '=',
-                                                                     slip.id)],
-                                                                   limit=1).total or 0.0  # Total Allowances
+                    ws['C' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=',
+                           rec.env.ref('hr_ke.ke_rule10').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Basic Pay
+                    ws['D' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=',
+                           rec.env.ref('hr_ke.ke_rule25').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total Allowances
                     ws['E' + str(fr + key)] = cross_pay
                     ws['F' + str(fr + key)] = cross_taxable - cross_pay
                     ws['G' + str(fr + key)] = cross_taxable
-                    ws['H' + str(fr + key)] = slip.line_ids.search([('salary_rule_id',
-                                                                     '=',
-                                                                     rec.env.ref('hr_ke.ke_rule80').id),
-                                                                    ('slip_id',
-                                                                     '=',
-                                                                     slip.id)],
-                                                                   limit=1).total  # Total Allowed Deductions
-                    ws['I' + str(fr + key)] = slip.line_ids.search([('salary_rule_id',
-                                                                     '=',
-                                                                     rec.env.ref('hr_ke.ke_rule85').id),
-                                                                    ('slip_id',
-                                                                     '=',
-                                                                     slip.id)],
-                                                                   limit=1).total  # Total Net Taxable Pay
-                    ws['J' + str(fr + key)] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule105').id), ('slip_id', '=', slip.id)], limit=1).total  # Total Net PAYE
-                    ws['K' + str(fr + key)] = slip.line_ids.search([('salary_rule_id',
-                                                                     '=',
-                                                                     rec.env.ref('hr_ke.ke_rule55').id),
-                                                                    ('slip_id',
-                                                                     '=',
-                                                                     slip.id)],
-                                                                   limit=1).total or 0.0  # Total NSSF - Member
+                    ws['H' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=',
+                           rec.env.ref('hr_ke.ke_rule80').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Allowed Deductions
+                    ws['I' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=',
+                           rec.env.ref('hr_ke.ke_rule85').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Net Taxable Pay
+                    ws['J' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=', rec.env.ref(
+                              'hr_ke.ke_rule105').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Net PAYE
+                    ws['K' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=',
+                           rec.env.ref('hr_ke.ke_rule55').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total or 0.0  # Total NSSF - Member
                     ws['L' + str(fr + key)] = nhif
                     ws['M' + str(fr + key)] = helb
                     # other deductions apart from nhif and helb
                     ws['N' + str(fr + key)] = deds - helb - nhif
-                    ws['O' + str(fr + key)] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule120').id), ('slip_id', '=', slip.id)], limit=1).total  # Total Net Pay
+                    ws['O' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=', rec.env.ref(
+                              'hr_ke.ke_rule120').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Net Pay
                 # Totals
                 t = fr + key + 1  # last row for Totals
                 ws['B' + str(t)] = 'TOTALS'
@@ -652,7 +721,7 @@ class PayrollReports(models.Model):
             if rec.slip_ids:
                 filename_netpay = 'NET_PAY-' + re.sub(
                     '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                    self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
+                    self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.xlsx'
                 wb = openpyxl.Workbook()
                 ws = wb.active
                 fr = 7  # First row of data
@@ -684,8 +753,11 @@ class PayrollReports(models.Model):
                     ws['D' +
                        str(fr +
                            key)] = slip.employee_id.bank_account_id.bank_id.bic or None
-                    ws['E' + str(fr + key)] = slip.line_ids.search([('salary_rule_id', '=', rec.env.ref(
-                        'hr_ke.ke_rule120').id), ('slip_id', '=', slip.id)], limit=1).total  # Total Net Pay
+                    ws['E' + str(fr + key)] = slip.line_ids.search([(
+                          'salary_rule_id', '=', rec.env.ref(
+                              'hr_ke.ke_rule120').id),
+                         ('slip_id', '=', slip.id)],
+                        limit=1).total  # Total Net Pay
                 # Totals
                 t = fr + key + 1  # last row for Totals
                 ws['D' + str(t)] = 'TOTAL'
@@ -705,13 +777,13 @@ class PayrollReports(models.Model):
         for rec in self:
             filename_employee = 'Employees_Details-' + re.sub(
                 '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
+                self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
             filename_disabled = 'Disabled_Employees_Details-' + re.sub(
                 '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
+                self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
             filename_car = 'Car_Benefit_Details-' + re.sub(
                 '[^A-Za-z0-9]+', '', rec.name) + '_' + fields.Datetime.context_timestamp(
-                self, datetime.datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
+                self, fields.Datetime.now()).strftime('%Y_%m_%d-%H%M%S') + '.csv'
             details_employee = []
             details_disabled = []
             details_cars = []
@@ -1058,6 +1130,7 @@ class PayrollReports(models.Model):
 
 class KETools(models.Model):
     _name = 'hr.ke'
+    _description = "KETools"
 
     @api.model
     def create_xls(self):

@@ -30,7 +30,7 @@
       <field name="margin_right">7</field>
       <field name="header_line" eval="False"/>
       <field name="header_spacing">50</field>
-      <field name="dpi">300</field>
+      <field name="dpi">90</field>
     </record>
 
     <record id="hr_payroll.action_report_payslip" model="ir.actions.report">
@@ -41,3 +41,4 @@
     </record>
   </data>
 </openerp>
+
