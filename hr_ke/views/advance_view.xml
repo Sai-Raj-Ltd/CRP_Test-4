@@ -1,4 +1,4 @@
-<openerp>
+<odoo>
 		<data>
 				<!-- salary adanve Action-->
 				<record id="ke_advance_action" model="ir.actions.act_window">
@@ -72,5 +72,5 @@
 		</record>
 
 	</data>
-</openerp>
+</odoo>
 
