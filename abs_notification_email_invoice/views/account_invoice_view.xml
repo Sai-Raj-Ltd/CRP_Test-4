@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<record id="invoice_form" model="ir.ui.view">
+            <field name="name">account.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="arch" type="xml">
+              <notebook>
+                <page name="Notification" string="Notification">
+                    <group>
+                        <field name="current_date" string = "When to send"/>
+                        <field name="recipients_of_email" widget = "many2many_tags"/>
+                        <field name="subject"/>
+                        <field name="email_content" widget = "html"/>
+                    </group>
+                </page>
+              </notebook>
+            </field>
+</record>
+
+<record id="invoice_supplier_form" model="ir.ui.view">
+            <field name="name">account.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="arch" type="xml">
+              <notebook>
+                <page name="Notification" string="Notification">
+                    <group>
+                        <field name="current_date" string = "When to send"/>
+                        <field name="recipients_of_email" widget = "many2many_tags"/>
+                        <field name="subject"/>
+                        <field name="email_content" widget = "html"/>
+                    </group>
+                </page>
+              </notebook>
+            </field>
+</record>
+
+</odoo>
+
